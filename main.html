@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Washikur Rahman — Software Developer & AI Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lime: #c8f131;
+    --dark: #0a0a0a;
+    --dark2: #111111;
+    --grey: #777;
+    --white: #f0f0eb;
+    --muted: #2a2a2a;
+    --border: #1e1e1e;
+    --pad: clamp(20px, 5vw, 52px);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--dark);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ─── CUSTOM CURSOR (desktop only) ─── */
+  #cursor, #cursor-ring { display: none; }
+  @media (pointer: fine) {
+    body { cursor: none; }
+    #cursor {
+      display: block; position: fixed; width: 10px; height: 10px;
+      background: var(--lime); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: width .3s, height .3s;
+      mix-blend-mode: difference;
+    }
+    #cursor-ring {
+      display: block; position: fixed; width: 32px; height: 32px;
+      border: 1px solid rgba(200,241,49,.4); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+    }
+  }
+
+  /* ─── LOADER ─── */
+  #loader {
+    position: fixed; inset: 0; background: var(--dark);
+    z-index: 10000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity .8s ease, visibility .8s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loader-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 10vw, 100px);
+    letter-spacing: 0.08em; color: var(--white); overflow: hidden;
+  }
+  .loader-text span {
+    display: inline-block;
+    animation: slideUp .7s cubic-bezier(.16,1,.3,1) forwards;
+    opacity: 0; transform: translateY(110%);
+  }
+  .loader-text span:nth-child(1){animation-delay:.05s}
+  .loader-text span:nth-child(2){animation-delay:.1s}
+  .loader-text span:nth-child(3){animation-delay:.15s}
+  .loader-text span:nth-child(4){animation-delay:.2s}
+  .loader-text span:nth-child(5){animation-delay:.25s}
+  .loader-text span:nth-child(6){animation-delay:.3s}
+  .loader-text span:nth-child(7){animation-delay:.35s}
+  .loader-text span:nth-child(8){animation-delay:.4s; color:var(--lime)}
+  .loader-bar { width: 160px; height: 1px; background: var(--muted); margin-top: 28px; overflow: hidden; }
+  .loader-bar-fill { height: 100%; background: var(--lime); width: 0; animation: barFill 1.6s cubic-bezier(.4,0,.2,1) .5s forwards; }
+  @keyframes barFill { to { width: 100%; } }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px var(--pad);
+    background: linear-gradient(to bottom, rgba(10,10,10,.96) 0%, transparent 100%);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+    letter-spacing: .12em; color: var(--white); text-decoration: none;
+    opacity: 0; animation: fadeIn .6s ease 2s forwards; flex-shrink: 0;
+  }
+  .nav-logo span { color: var(--lime); }
+  .nav-links {
+    display: flex; gap: clamp(14px, 2.5vw, 34px); list-style: none;
+    opacity: 0; animation: fadeIn .6s ease 2.1s forwards;
+  }
+  .nav-links a {
+    font-size: clamp(8px, 1vw, 10px); letter-spacing: .18em; text-transform: uppercase;
+    color: var(--grey); text-decoration: none; transition: color .3s; position: relative; white-space: nowrap;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -3px; left: 0;
+    width: 0; height: 1px; background: var(--lime);
+    transition: width .3s cubic-bezier(.4,0,.2,1);
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta {
+    font-size: clamp(8px, 1vw, 10px); letter-spacing: .2em; text-transform: uppercase;
+    color: var(--dark); background: var(--lime); padding: 10px 18px;
+    text-decoration: none; transition: opacity .3s; flex-shrink: 0;
+    opacity: 0; animation: fadeIn .6s ease 2.2s forwards; white-space: nowrap;
+  }
+  .nav-cta:hover { opacity: .85; }
+
+  .nav-hamburger {
+    display: none; flex-direction: column; gap: 5px; cursor: pointer;
+    background: none; border: none; padding: 4px;
+    opacity: 0; animation: fadeIn .6s ease 2s forwards;
+  }
+  .nav-hamburger span { display: block; width: 22px; height: 1px; background: var(--white); transition: all .3s; }
+  .nav-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(4px,4px); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4px,-4px); }
+
+  .mobile-menu {
+    display: none; position: fixed; inset: 0; background: var(--dark2); z-index: 999;
+    flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 10vw, 52px);
+    letter-spacing: .06em; color: var(--white); text-decoration: none; transition: color .3s;
+  }
+  .mobile-menu a:hover { color: var(--lime); }
+
+  @media (max-width: 768px) {
+    .nav-links, .nav-cta { display: none; }
+    .nav-hamburger { display: flex; }
+  }
+
+  /* ─── HERO ─── */
+  /* Key fix: no absolutely positioned overlapping elements.
+     Everything is in normal flow, stacked vertically. */
+  #hero {
+    min-height: 100svh; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 var(--pad) clamp(40px, 8vh, 72px);
+    /* push content below nav */
+    padding-top: clamp(100px, 14vh, 140px);
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 75% 40%, rgba(200,241,49,.05) 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(200,241,49,.03) 0%, transparent 50%),
+      linear-gradient(160deg, #0a0a0a 0%, #0d120a 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(200,241,49,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,241,49,.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridDrift 25s linear infinite;
+  }
+  @keyframes gridDrift { to { transform: translate(60px,60px); } }
+
+  /* Decorative symbol — pointer-events none, hidden on mobile */
+  .hero-deco {
+    position: absolute; right: var(--pad); top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 14vw, 240px);
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(200,241,49,.06);
+    letter-spacing: -.02em; line-height: 1;
+    user-select: none; pointer-events: none;
+    opacity: 0; animation: slideInRight 1.2s cubic-bezier(.16,1,.3,1) 2s forwards;
+  }
+  @media (max-width: 600px) { .hero-deco { display: none; } }
+
+  /* Speed lines */
+  .speed-lines { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .speed-line {
+    position: absolute; left: -20%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,241,49,.2), transparent);
+    animation: speedLine var(--dur,2s) var(--delay,0s) linear infinite; opacity: 0;
+  }
+  @keyframes speedLine {
+    0%  { left: -20%; opacity: 0; width: var(--w,15%); }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100%{ left: 120%; opacity: 0; }
+  }
+
+  /* All hero text in a single flex column — no absolute children */
+  .hero-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column;
+    gap: clamp(14px, 2.5vh, 28px);
+  }
+
+  /* Meta pills sit as a row above the name */
+  .hero-meta-row {
+    display: flex; flex-wrap: wrap; gap: 8px 24px;
+    opacity: 0; animation: fadeIn .8s ease 2.3s forwards;
+  }
+  .hero-meta-pill .pill-label {
+    font-size: 8px; letter-spacing: .28em; text-transform: uppercase; color: var(--grey); display: block;
+  }
+  .hero-meta-pill .pill-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(13px, 2vw, 19px); letter-spacing: .05em; color: var(--white); line-height: 1.15;
+  }
+  .hero-meta-pill .pill-value span { color: var(--lime); }
+
+  .hero-tag {
+    font-size: clamp(8px, 1.2vw, 10px); letter-spacing: .3em; text-transform: uppercase;
+    color: var(--lime); opacity: 0; animation: fadeIn .8s ease 2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(54px, 11vw, 160px);
+    line-height: .9; letter-spacing: -.01em; color: var(--white);
+  }
+  .hero-title .line { overflow: hidden; display: block; }
+  .hero-title .line span {
+    display: block; opacity: 0; transform: translateY(110%);
+    animation: slideUp .9s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  .hero-title .line:nth-child(1) span { animation-delay: 2s; }
+  .hero-title .line:nth-child(2) span { animation-delay: 2.15s; color: var(--lime); }
+
+  .hero-sub {
+    font-size: clamp(9px, 1.3vw, 12px); letter-spacing: .16em; text-transform: uppercase;
+    color: var(--grey); opacity: 0; animation: fadeIn .8s ease 2.4s forwards;
+  }
+
+  .hero-scroll {
+    display: flex; align-items: center; gap: 14px;
+    opacity: 0; animation: fadeIn .8s ease 2.8s forwards;
+  }
+  .scroll-line {
+    width: 46px; height: 1px; background: var(--muted); overflow: hidden; position: relative;
+  }
+  .scroll-line::after {
+    content: ''; position: absolute; left: -100%; top: 0; width: 100%; height: 100%;
+    background: var(--lime); animation: scrollLineH 2s ease-in-out 3s infinite;
+  }
+  @keyframes scrollLineH { 0%{left:-100%} 100%{left:100%} }
+  .hero-scroll-text { font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: var(--grey); }
+
+  /* ─── MARQUEE ─── */
+  .marquee-section { overflow: hidden; background: var(--lime); padding: 12px 0; }
+  .marquee-track { display: flex; animation: marqueeScroll 22s linear infinite; width: max-content; }
+  .marquee-track:hover { animation-play-state: paused; }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(13px, 2vw, 18px); letter-spacing: .1em;
+    color: var(--dark); white-space: nowrap; padding: 0 clamp(18px, 3.5vw, 36px);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .mdot { width: 5px; height: 5px; border-radius: 50%; background: var(--dark); opacity: .35; }
+  @keyframes marqueeScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ─── SHARED ─── */
+  section { padding: clamp(56px, 10vh, 120px) var(--pad); }
+  .eyebrow { font-size: 9px; letter-spacing: .38em; text-transform: uppercase; color: var(--lime); margin-bottom: 12px; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 7vw, 88px);
+    line-height: .95; letter-spacing: -.01em; color: var(--white);
+  }
+  .section-title .accent { color: var(--lime); }
+
+  /* ─── ABOUT ─── */
+  #about {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 6vw, 80px); align-items: start;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 768px) { #about { grid-template-columns: 1fr; gap: 36px; } }
+
+  .big-quote {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: clamp(20px, 3.2vw, 44px); line-height: 1.35; color: var(--white);
+  }
+  .big-quote em { color: var(--lime); font-style: normal; }
+  .about-body { font-size: 14px; line-height: 1.85; color: var(--grey); margin-bottom: 18px; }
+  .about-body strong { color: var(--white); font-weight: 500; }
+  .contact-row { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .contact-item {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 12px; color: var(--grey); text-decoration: none; transition: color .3s;
+  }
+  .contact-item:hover { color: var(--lime); }
+  .contact-icon { width: 26px; height: 26px; flex-shrink: 0; border: 1px solid var(--muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+  /* ─── EXPERIENCE ─── */
+  #experience { border-top: 1px solid var(--border); }
+  .exp-header { margin-bottom: clamp(32px, 6vh, 60px); }
+  .exp-list { display: flex; flex-direction: column; }
+  .exp-item {
+    display: grid; grid-template-columns: 72px 1fr auto;
+    gap: clamp(14px, 3vw, 40px); padding: clamp(22px, 4vh, 36px) 0;
+    border-bottom: 1px solid var(--border); align-items: start; cursor: default;
+    transition: padding-left .4s cubic-bezier(.4,0,.2,1);
+  }
+  .exp-item:hover { padding-left: 12px; }
+  @media (max-width: 640px) {
+    .exp-item { grid-template-columns: 1fr; gap: 10px; }
+    .exp-item:hover { padding-left: 0; }
+    .exp-location { display: none; }
+  }
+  .exp-year { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--grey); line-height: 1.6; padding-top: 4px; }
+  .exp-role { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 3.5vw, 32px); letter-spacing: .04em; color: var(--white); margin-bottom: 4px; transition: color .3s; }
+  .exp-item:hover .exp-role { color: var(--lime); }
+  .exp-company { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--lime); margin-bottom: 12px; }
+  .exp-desc { font-size: 13px; line-height: 1.75; color: var(--grey); }
+  .exp-desc li { margin-left: 16px; margin-bottom: 5px; }
+  .exp-location { font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); text-align: right; padding-top: 4px; white-space: nowrap; }
+
+  /* ─── PROJECTS ─── */
+  #projects { background: var(--dark2); border-top: 1px solid var(--border); }
+  .projects-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: clamp(28px, 5vh, 52px); }
+  @media (max-width: 900px) { .projects-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 540px) { .projects-grid { grid-template-columns: 1fr; } }
+
+  .project-card {
+    padding: clamp(22px, 3.5vw, 40px) clamp(18px, 3vw, 34px);
+    background: var(--dark); border: 1px solid var(--border);
+    transition: border-color .3s, transform .4s cubic-bezier(.4,0,.2,1);
+    cursor: default; position: relative; overflow: hidden;
+  }
+  .project-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg,rgba(200,241,49,.04) 0%,transparent 60%);
+    opacity: 0; transition: opacity .4s;
+  }
+  .project-card:hover { border-color: rgba(200,241,49,.25); transform: translateY(-4px); }
+  .project-card:hover::before { opacity: 1; }
+  .project-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 46px;
+    color: transparent; -webkit-text-stroke: 1px var(--muted);
+    line-height: 1; margin-bottom: 14px; transition: color .3s, -webkit-text-stroke .3s;
+  }
+  .project-card:hover .project-num { color: var(--lime); -webkit-text-stroke: 1px var(--lime); }
+  .project-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(17px, 2.2vw, 23px); letter-spacing: .06em; color: var(--white); margin-bottom: 10px; line-height: 1.2; }
+  .project-desc { font-size: 12px; line-height: 1.8; color: var(--grey); margin-bottom: 18px; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--lime); border: 1px solid rgba(200,241,49,.25); padding: 4px 8px; }
+
+  /* ─── RESEARCH ─── */
+  #research { border-top: 1px solid var(--border); }
+  .research-list { display: flex; flex-direction: column; margin-top: clamp(28px, 5vh, 52px); }
+  .research-item {
+    padding: clamp(22px, 4vh, 38px) 0; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: start;
+    transition: padding-left .4s;
+  }
+  .research-item:hover { padding-left: 10px; }
+  @media (max-width: 640px) {
+    .research-item { grid-template-columns: 1fr; gap: 14px; }
+    .research-item:hover { padding-left: 0; }
+    .research-meta { flex-direction: row; flex-wrap: wrap; }
+  }
+  .research-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(18px, 2.8vw, 26px); letter-spacing: .04em; color: var(--white); margin-bottom: 10px; transition: color .3s; }
+  .research-item:hover .research-title { color: var(--lime); }
+  .research-desc { font-size: 13px; line-height: 1.75; color: var(--grey); max-width: 680px; }
+  .research-meta { display: flex; flex-direction: column; gap: 7px; }
+  .research-tag { font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--lime); border: 1px solid rgba(200,241,49,.2); padding: 4px 8px; white-space: nowrap; }
+
+  /* ─── PUBLICATION ─── */
+  #publication { border-top: 1px solid var(--border); padding: clamp(44px,7vh,80px) var(--pad); }
+  .pub-box {
+    border: 1px solid var(--muted); padding: clamp(22px, 4vw, 48px);
+    position: relative; overflow: hidden; transition: border-color .3s;
+  }
+  .pub-box:hover { border-color: rgba(200,241,49,.3); }
+  .pub-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--lime); }
+  .pub-label { font-size: 9px; letter-spacing: .32em; text-transform: uppercase; color: var(--lime); margin-bottom: 14px; }
+  .pub-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(17px, 3vw, 34px);
+    letter-spacing: .04em; color: var(--white); line-height: 1.2; margin-bottom: 14px;
+    padding-right: clamp(0px,10vw,110px);
+  }
+  .pub-meta { font-size: 12px; color: var(--grey); line-height: 1.7; }
+  .pub-year {
+    position: absolute; top: 28px; right: 28px;
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 7vw, 76px);
+    color: transparent; -webkit-text-stroke: 1px rgba(200,241,49,.1); line-height: 1;
+  }
+  @media (max-width: 500px) { .pub-year { display: none; } }
+
+  /* ─── AWARDS ─── */
+  .awards-bar {
+    overflow: hidden; border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); padding: 18px 0; background: var(--dark2);
+  }
+  .awards-track { display: flex; animation: marqueeScroll 20s linear infinite; width: max-content; }
+  .awards-track:hover { animation-play-state: paused; }
+  .award-item { display: flex; align-items: center; gap: 14px; padding: 0 34px; white-space: nowrap; }
+  .award-star { color: var(--lime); font-size: 13px; }
+  .award-text { font-size: 12px; letter-spacing: .07em; color: var(--grey); }
+
+  /* ─── SKILLS ─── */
+  #skills { background: var(--dark2); border-top: 1px solid var(--border); }
+  .skills-header { margin-bottom: clamp(32px, 5vh, 60px); }
+  .skills-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 2px; }
+  @media (max-width: 540px) { .skills-grid { grid-template-columns: 1fr; } }
+  .skill-group { padding: clamp(22px, 3vw, 40px) clamp(18px, 3vw, 34px); border: 1px solid var(--border); background: var(--dark); }
+  .skill-group-name { font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
+  .skill-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-item {
+    font-size: 11px; letter-spacing: .12em; color: var(--white);
+    border: 1px solid var(--muted); padding: 7px 13px; transition: all .3s; cursor: default;
+  }
+  .skill-item:hover { border-color: var(--lime); color: var(--lime); }
+
+  /* ─── EDUCATION ─── */
+  #education { border-top: 1px solid var(--border); }
+  .edu-list { display: flex; flex-direction: column; margin-top: clamp(28px, 5vh, 52px); }
+  .edu-item {
+    padding: clamp(22px, 4vh, 36px) 0; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;
+  }
+  @media (max-width: 480px) {
+    .edu-item { grid-template-columns: 1fr; }
+    .edu-gpa-col { display: flex; align-items: baseline; gap: 10px; }
+  }
+  .edu-degree { font-family: 'Bebas Neue', sans-serif; font-size: clamp(17px, 2.8vw, 26px); letter-spacing: .04em; color: var(--white); margin-bottom: 5px; }
+  .edu-school { font-size: 10px; letter-spacing: .17em; text-transform: uppercase; color: var(--lime); }
+  .edu-note { font-size: 11px; color: var(--grey); margin-top: 8px; line-height: 1.7; }
+  .edu-cgpa { font-family: 'Bebas Neue', sans-serif; font-size: clamp(30px, 4.5vw, 44px); color: var(--lime); letter-spacing: -.01em; line-height: 1; }
+  .edu-year { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--grey); text-align: right; margin-top: 4px; }
+
+  /* ─── CONTACT CTA ─── */
+  #contact { text-align: center; padding: clamp(72px, 12vh, 140px) var(--pad); border-top: 1px solid var(--border); }
+  .contact-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 9vw, 120px);
+    letter-spacing: -.01em; line-height: .95; margin-bottom: clamp(28px, 5vh, 48px);
+  }
+  .contact-big .outline { color: transparent; -webkit-text-stroke: 1px var(--white); transition: all .3s; }
+  .contact-big .outline:hover { color: var(--lime); -webkit-text-stroke: 1px var(--lime); }
+  .cta-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .cta-link {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--dark); background: var(--lime); padding: 16px clamp(20px,4vw,36px);
+    text-decoration: none; transition: opacity .3s;
+  }
+  .cta-link:hover { opacity: .85; }
+  .cta-link-ghost {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--white); border: 1px solid var(--muted); padding: 16px clamp(20px,4vw,36px);
+    text-decoration: none; transition: all .3s;
+  }
+  .cta-link-ghost:hover { border-color: var(--lime); color: var(--lime); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border); padding: 30px var(--pad);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .12em; color: var(--white); }
+  .footer-logo span { color: var(--lime); }
+  .footer-right { font-size: 10px; letter-spacing: .17em; text-transform: uppercase; color: var(--grey); }
+
+  /* ─── KEYFRAMES & REVEAL ─── */
+  @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-d1 { transition-delay: .12s; }
+  .reveal-d2 { transition-delay: .22s; }
+
+  /* Noise grain */
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9997; opacity: .4;
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-text">
+    <span>W</span><span>A</span><span>S</span><span>H</span><span>I</span><span>K</span><span>U</span><span>R</span>
+  </div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+<!-- MOBILE MENU OVERLAY -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about"      onclick="closeMobile()">About</a>
+  <a href="#experience" onclick="closeMobile()">Experience</a>
+  <a href="#projects"   onclick="closeMobile()">Projects</a>
+  <a href="#research"   onclick="closeMobile()">Research</a>
+  <a href="#skills"     onclick="closeMobile()">Skills</a>
+  <a href="#contact"    onclick="closeMobile()">Contact</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">W<span>.</span>R</a>
+  <ul class="nav-links">
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="mailto:w.rahmanbia@gmail.com" class="nav-cta">Hire Me</a>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="speed-lines">
+    <div class="speed-line" style="top:10%;--dur:3.5s;--delay:.3s;--w:18%"></div>
+    <div class="speed-line" style="top:22%;--dur:2.8s;--delay:1.2s;--w:12%"></div>
+    <div class="speed-line" style="top:36%;--dur:4s;--delay:.7s;--w:20%"></div>
+    <div class="speed-line" style="top:53%;--dur:3s;--delay:2s;--w:10%"></div>
+    <div class="speed-line" style="top:68%;--dur:3.8s;--delay:.5s;--w:15%"></div>
+    <div class="speed-line" style="top:83%;--dur:2.5s;--delay:1.7s;--w:9%"></div>
+  </div>
+  <div class="hero-deco">&lt;/&gt;</div>
+
+  <div class="hero-content">
+    <!-- Meta row — sits cleanly above the name, never overlaps -->
+    <div class="hero-meta-row">
+      <div class="hero-meta-pill">
+        <span class="pill-label">Currently At</span>
+        <span class="pill-value">Incepta <span>Solutions</span></span>
+      </div>
+      <div class="hero-meta-pill">
+        <span class="pill-label">Location</span>
+        <span class="pill-value">Ontario, <span>Canada</span></span>
+      </div>
+      <div class="hero-meta-pill">
+        <span class="pill-label">CGPA</span>
+        <span class="pill-value"><span>3.88</span> / 4.00</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="hero-tag">Software Developer · AI Engineer · BRAC University 2025</div>
+      <h1 class="hero-title">
+        <span class="line"><span>Washikur</span></span>
+        <span class="line"><span>Rahman</span></span>
+      </h1>
+    </div>
+
+    <div class="hero-sub">Building intelligent systems · AI Agents · Computer Vision · NLP</div>
+
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span class="hero-scroll-text">Scroll to explore</span>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>RAG Systems</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Computer Vision</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>PyTorch · TensorFlow</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>LangChain · OpenAI</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>AI Robotics</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>CGPA 3.88 · Highest Distinction</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Published Researcher</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Dean's List · VC List</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>RAG Systems</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Computer Vision</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>PyTorch · TensorFlow</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>LangChain · OpenAI</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>AI Robotics</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>CGPA 3.88 · Highest Distinction</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Published Researcher</span><span class="mdot"></span></div>
+    <div class="marquee-item"><span>Dean's List · VC List</span><span class="mdot"></span></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-left reveal">
+    <div class="eyebrow">The Developer</div>
+    <p class="big-quote">
+      <em>Redefining</em> what intelligent systems can do — from the <em>lab</em> to production.
+    </p>
+  </div>
+  <div class="reveal reveal-d2">
+    <p class="about-body">Washikur Rahman is a Software Developer and AI Engineer graduating with <strong>Highest Distinction from BRAC University (CGPA 3.88/4.00)</strong>. Currently building enterprise-grade AI agents at Incepta Solutions in Ontario, Canada.</p>
+    <p class="about-body">His work spans <strong>Retrieval-Augmented Generation systems</strong>, computer vision for industrial automation, and AI-powered robotics — combining deep research foundations with production-grade engineering.</p>
+    <div class="contact-row">
+      <a href="mailto:w.rahmanbia@gmail.com" class="contact-item">
+        <div class="contact-icon">@</div><span>w.rahmanbia@gmail.com</span>
+      </a>
+      <a href="tel:+8801727260141" class="contact-item">
+        <div class="contact-icon">✆</div><span>+88 01727260141</span>
+      </a>
+      <a href="https://github.com/wasikurosaki" target="_blank" class="contact-item">
+        <div class="contact-icon">⌥</div><span>github.com/wasikurosaki</span>
+      </a>
+      <a href="https://linkedin.com/in/washikur-rahman" target="_blank" class="contact-item">
+        <div class="contact-icon">in</div><span>linkedin · Washikur Rahman</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="exp-header reveal">
+    <div class="eyebrow">Career</div>
+    <div class="section-title">Work<br><span class="accent">Experience</span></div>
+  </div>
+  <div class="exp-list">
+    <div class="exp-item reveal">
+      <div class="exp-year">2025<br>Present</div>
+      <div>
+        <div class="exp-role">Software Developer</div>
+        <div class="exp-company">Incepta Solutions</div>
+        <ul class="exp-desc">
+          <li>Developing Retrieval-Augmented Generation (RAG) systems to build intelligent AI agents for complex enterprise workflows.</li>
+          <li>Designing modular, scalable architectures combining LLMs with vector databases and knowledge bases.</li>
+          <li>Deploying AI-driven solutions that automate decision-making and improve business efficiency.</li>
+        </ul>
+      </div>
+      <div class="exp-location">Ontario<br>Canada</div>
+    </div>
+    <div class="exp-item reveal">
+      <div class="exp-year">Jan 2024<br>—<br>May 2025</div>
+      <div>
+        <div class="exp-role">Teaching Assistant</div>
+        <div class="exp-company">BRAC University</div>
+        <ul class="exp-desc">
+          <li>Explained core algorithmic concepts and problem-solving techniques to undergraduate students.</li>
+          <li>Guided lab sessions, bridging theory with practical programming implementation.</li>
+          <li>Provided one-on-one assistance, improving student performance in complex algorithm topics.</li>
+        </ul>
+      </div>
+      <div class="exp-location">Dhaka<br>Bangladesh</div>
+    </div>
+    <div class="exp-item reveal">
+      <div class="exp-year">Jan 2023<br>—<br>Nov 2023</div>
+      <div>
+        <div class="exp-role">Software Engineer</div>
+        <div class="exp-company">Roboway Labs · AI & Robotics</div>
+        <ul class="exp-desc">
+          <li>Developed AI-powered industrial robots with perception and decision-making systems.</li>
+          <li>Implemented computer vision, control algorithms, and sensor integration for autonomous execution.</li>
+          <li>Optimized ML models using Python, OpenCV, and PyTorch for real-time robotic deployment.</li>
+        </ul>
+      </div>
+      <div class="exp-location">Dhaka<br>Bangladesh</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="reveal">
+    <div class="eyebrow">Built Things</div>
+    <div class="section-title">Projects &<br><span class="accent">Systems</span></div>
+  </div>
+  <div class="projects-grid">
+    <div class="project-card reveal">
+      <div class="project-num">01</div>
+      <div class="project-name">AI Model Training Pipeline</div>
+      <p class="project-desc">Modular pipeline for supervised learning — classification and regression across diverse datasets. Automated experiment tracking, hyperparameter optimization, and full reproducibility via MLflow.</p>
+      <div class="project-tags"><span class="tag">PyTorch</span><span class="tag">TensorFlow</span><span class="tag">MLflow</span></div>
+    </div>
+    <div class="project-card reveal reveal-d1">
+      <div class="project-num">02</div>
+      <div class="project-name">Visual Inspection System</div>
+      <p class="project-desc">ML-based computer vision for identifying defects in manufactured components with high precision. Deployed in an industrial automation pipeline, significantly reducing manual inspection effort.</p>
+      <div class="project-tags"><span class="tag">Python</span><span class="tag">OpenCV</span><span class="tag">Scikit-learn</span></div>
+    </div>
+    <div class="project-card reveal reveal-d2">
+      <div class="project-num">03</div>
+      <div class="project-name">RAG AI Agent</div>
+      <p class="project-desc">Retrieval-Augmented Generation architecture for intelligent domain-specific query answering. Vector search and contextual response generation for enterprise knowledge retrieval.</p>
+      <div class="project-tags"><span class="tag">LangChain</span><span class="tag">OpenAI</span><span class="tag">Pinecone</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research">
+  <div class="reveal">
+    <div class="eyebrow">Academic Work</div>
+    <div class="section-title">Research &<br><span class="accent">Publications</span></div>
+  </div>
+  <div class="research-list">
+    <div class="research-item reveal">
+      <div>
+        <div class="research-title">Dynamic Underwater Image Enhancement Algorithm</div>
+        <p class="research-desc">Proposed a hybrid algorithm addressing color distortion, low contrast, and haze in underwater environments. Combined Discrete Wavelet Transform with CLAHE and bilateral filtering in a recursive framework. Validated with PSNR and SSIM metrics; demonstrated improved YOLO-based object detection accuracy.</p>
+      </div>
+      <div class="research-meta">
+        <span class="research-tag">OpenCV · PyTorch</span>
+        <span class="research-tag">YOLO · DWT</span>
+        <span class="research-tag">Image Processing</span>
+      </div>
+    </div>
+    <div class="research-item reveal">
+      <div>
+        <div class="research-title">EEG-Based Visual Cortex Interpretation</div>
+        <p class="research-desc">Investigating decoding of visual stimuli from EEG signals by analyzing brain activity in the visual cortex. Applied signal processing and supervised learning to map EEG patterns to image features for brain-computer interfacing. Targeting visual reconstruction for cognitive neuroscience and assistive technologies.</p>
+      </div>
+      <div class="research-meta">
+        <span class="research-tag">EEG Processing</span>
+        <span class="research-tag">Machine Learning</span>
+        <span class="research-tag">BCI</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PUBLICATION -->
+<section id="publication">
+  <div class="pub-box reveal">
+    <div class="pub-year">2026</div>
+    <div class="pub-label">Published Paper · ICCAI 2026</div>
+    <div class="pub-title">MSA-MapGAN: A Multi-Scale Attention GAN for Satellite-to-Vector Map Translation</div>
+    <p class="pub-meta">S. M. Dipto and W. Rahman · Proceedings of the 12th International Conference on Computing and Artificial Intelligence (ICCAI 2026) · Paper ID: 22 · Accepted for publication</p>
+  </div>
+</section>
+
+<!-- AWARDS -->
+<div class="awards-bar">
+  <div class="awards-track">
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Graduated with Highest Distinction — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Dean's List of Excellence — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Vice Chancellor's List of Excellence — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Academic Merit Scholarship — 50% Tuition Coverage</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">GPS Surveying Training — Institute of Water Modelling</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Graduated with Highest Distinction — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Dean's List of Excellence — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Vice Chancellor's List of Excellence — BRAC University</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">Academic Merit Scholarship — 50% Tuition Coverage</span></div>
+    <div class="award-item"><span class="award-star">★</span><span class="award-text">GPS Surveying Training — Institute of Water Modelling</span></div>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="skills-header reveal">
+    <div class="eyebrow">Arsenal</div>
+    <div class="section-title">Technical<br><span class="accent">Skills</span></div>
+  </div>
+  <div class="skills-grid">
+    <div class="skill-group reveal">
+      <div class="skill-group-name">Programming Languages</div>
+      <div class="skill-items">
+        <span class="skill-item">Python</span><span class="skill-item">C++</span>
+        <span class="skill-item">TypeScript</span><span class="skill-item">JavaScript</span>
+      </div>
+    </div>
+    <div class="skill-group reveal reveal-d1">
+      <div class="skill-group-name">ML & AI Frameworks</div>
+      <div class="skill-items">
+        <span class="skill-item">PyTorch</span><span class="skill-item">TensorFlow</span>
+        <span class="skill-item">Scikit-learn</span><span class="skill-item">MLflow</span>
+        <span class="skill-item">HuggingFace</span>
+      </div>
+    </div>
+    <div class="skill-group reveal">
+      <div class="skill-group-name">Computer Vision</div>
+      <div class="skill-items">
+        <span class="skill-item">OpenCV</span><span class="skill-item">DLib</span><span class="skill-item">YOLO</span>
+      </div>
+    </div>
+    <div class="skill-group reveal reveal-d1">
+      <div class="skill-group-name">NLP & AI Agents</div>
+      <div class="skill-items">
+        <span class="skill-item">LangChain</span><span class="skill-item">OpenAI APIs</span>
+        <span class="skill-item">Pinecone</span><span class="skill-item">RAG Systems</span>
+        <span class="skill-item">Transformers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="reveal">
+    <div class="eyebrow">Academic Background</div>
+    <div class="section-title">Education</div>
+  </div>
+  <div class="edu-list">
+    <div class="edu-item reveal">
+      <div>
+        <div class="edu-degree">BSc in Computer Science</div>
+        <div class="edu-school">BRAC University · Dhaka, Bangladesh</div>
+        <div class="edu-note">Data Structures & Algorithms · Artificial Intelligence · Image Processing · Compiler Design · Applied Data Science</div>
+      </div>
+      <div class="edu-gpa-col" style="text-align:right">
+        <div class="edu-cgpa">3.88</div>
+        <div class="edu-year">May 2025<br>CGPA / 4.00</div>
+      </div>
+    </div>
+    <div class="edu-item reveal">
+      <div>
+        <div class="edu-degree">Higher Secondary Certificate (HSC)</div>
+        <div class="edu-school">Bir Shreshtha Munshi Abdur Rouf Public College · Dhaka</div>
+      </div>
+      <div class="edu-gpa-col" style="text-align:right">
+        <div class="edu-cgpa">5.00</div>
+        <div class="edu-year">Jan 2020<br>GPA / 5.00</div>
+      </div>
+    </div>
+    <div class="edu-item reveal">
+      <div>
+        <div class="edu-degree">Secondary School Certificate (SSC)</div>
+        <div class="edu-school">Willes Little Flower School & College · Dhaka</div>
+      </div>
+      <div class="edu-gpa-col" style="text-align:right">
+        <div class="edu-cgpa">5.00</div>
+        <div class="edu-year">Jan 2018<br>GPA / 5.00</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="eyebrow reveal">Let's Build Something</div>
+  <div class="contact-big reveal">
+    Get In<br><span class="outline">Touch</span>
+  </div>
+  <div class="cta-buttons reveal">
+    <a href="mailto:w.rahmanbia@gmail.com" class="cta-link">Send Email →</a>
+    <a href="https://linkedin.com/in/washikur-rahman" target="_blank" class="cta-link-ghost">LinkedIn ↗</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Washikur<span>.</span></div>
+  <div class="footer-right">Software Developer · AI Engineer · © 2025</div>
+</footer>
+
+<script>
+  /* ── CURSOR ── */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  if (cursor) {
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+    (function animRing(){ rx+=(mx-rx)*.1; ry+=(my-ry)*.1; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); })();
+    document.querySelectorAll('a,button,.project-card,.exp-item,.research-item').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{ cursor.style.width='20px'; cursor.style.height='20px'; ring.style.width='48px'; ring.style.height='48px'; });
+      el.addEventListener('mouseleave',()=>{ cursor.style.width='10px'; cursor.style.height='10px'; ring.style.width='32px'; ring.style.height='32px'; });
+    });
+  }
+
+  /* ── LOADER ── */
+  setTimeout(()=>document.getElementById('loader').classList.add('hidden'), 2000);
+
+  /* ── HAMBURGER ── */
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click',()=>{
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+    document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+  });
+  function closeMobile(){ hamburger.classList.remove('open'); mobileMenu.classList.remove('open'); document.body.style.overflow=''; }
+
+  /* ── SCROLL REVEAL ── */
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  },{ threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  /* ── PARALLAX DECO (desktop only) ── */
+  window.addEventListener('scroll',()=>{
+    const d = document.querySelector('.hero-deco');
+    if(d) d.style.transform = `translateY(calc(-50% + ${scrollY*.18}px))`;
+  });
+</script>
+</body>
+</html>
